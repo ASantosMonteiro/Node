@@ -1,7 +1,7 @@
 const { response } = require("express");
 const subirArchivo = require("../helpers/subir-archivo");
 const { Usuario, Producto } = require('../models');
-const cloudinary = require('cloudinary');
+const cloudinary = require('cloudinary').v2;
 cloudinary.config( process.env.CLOUDINARY_URL );
 
 const path = require('path');
@@ -108,17 +108,17 @@ const actualizarImagenCloudinary = async(req, res = response) => {
         const nombreArr = modelo.img.split('/');
         const nombre = nombreArr[ nombreArr.length - 1 ];
         const [ public_id ] = nombre.split('.');
-        await cloudinary.UploadStream.destroy( public_id );
+        await cloudinary.uploader.destroy( public_id );
     }
 
-    const { tempFilePath } = req.files.archivo;
-    const resp = await cloudinary.UploadStream.upload( tempFilePath );
-
-    modelo.img = nombre;
+    const { tempFilePath } = req.files.archivo
+    const { secure_url } = await cloudinary.uploader.upload( tempFilePath );
+    modelo.img = secure_url;
 
     await modelo.save();
 
-    res.json(modelo)
+
+    res.json( modelo );
 }
 
 const mostrarImage = async(req, res = response) => {
